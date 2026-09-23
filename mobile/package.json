@@ -41,7 +41,7 @@
   "scripts": {
     "start": "expo start",
     "ios": "expo run:ios",
-    "test": "jest --runInBand",
+    "test": "node scripts/run-jest.cjs --runInBand",
     "test:scripts": "python -m unittest discover -s scripts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
