@@ -1,0 +1,129 @@
+name: Mobile feature verification
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Verification scope
+        type: choice
+        required: true
+        default: native
+        options:
+          - native
+          - backend
+          - all
+permissions:
+  contents: read
+concurrency:
+  group: mobile-feature-verification-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  backend-mysql:
+    if: inputs.scope == 'backend' || inputs.scope == 'all'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: isolated-test-password
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: misaluteca_mobile_test
+        ports:
+          - 33316:3306
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pisolated-test-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      RUN_MOBILE_MYSQL_TESTS: '1'
+      CI: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Verify full backend suite on disposable MySQL
+        run: |
+          mkdir -p mobile/artifacts/backend-verification
+          # Fixture owns only its hard-coded loopback management TEST database.
+          # A checkout without the new suite must fail, never report success.
+          test -f tests/mobile-backend/management.integration.test.ts
+          node --test --test-concurrency=1 --test-reporter=tap tests/mobile-backend/*.test.ts 2>&1 | tee mobile/artifacts/backend-verification/mysql.log
+          grep -q '^# skipped 0$' mobile/artifacts/backend-verification/mysql.log
+      - name: Build real production image without provider credentials
+        run: docker build --tag saluteca-feature-verification . 2>&1 | tee mobile/artifacts/backend-verification/docker-build.log
+      - name: Start actual supervisor and HTTP server on port 3000
+        run: |
+          docker run --detach --name saluteca-feature-smoke --network host \
+            --env DB_HOST=127.0.0.1 \
+            --env DB_USER=root \
+            --env DB_PASSWORD=isolated-test-password \
+            --env DB_NAME=misaluteca_mobile_test \
+            --env MOBILE_ORIGIN=https://test.invalid \
+            --env NEXTAUTH_URL=http://127.0.0.1:3000 \
+            --env NEXTAUTH_SECRET=isolated-container-test-secret \
+            saluteca-feature-verification
+          trap 'docker logs saluteca-feature-smoke > mobile/artifacts/backend-verification/docker-startup.log 2>&1; docker rm --force saluteca-feature-smoke >/dev/null' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            status="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3000/api/mobile/v1/me || true)"
+            if [ "$status" = 401 ]; then ready=true; break; fi
+            sleep 1
+          done
+          test "$ready" = true
+          test "$(docker inspect --format '{{.State.Running}}' saluteca-feature-smoke)" = true
+          echo 'Production supervisor serves canonical unauthenticated HTTP 401 on port 3000; disposable MySQL fixture configured; no provider credentials.'
+      - name: Preserve backend evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-feature-verification-${{ github.run_id }}
+          path: mobile/artifacts/backend-verification/
+          if-no-files-found: warn
+  native-ocr:
+    if: inputs.scope == 'native' || inputs.scope == 'all'
+    runs-on: macos-26
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.4.1.app/Contents/Developer
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native toolchain
+        run: |
+          mkdir -p mobile/artifacts/native-ocr
+          xcodebuild -version | tee mobile/artifacts/native-ocr/xcode.txt
+          grep -q '^Xcode 26\.4\.1$' mobile/artifacts/native-ocr/xcode.txt
+          xcrun swiftc --version | tee mobile/artifacts/native-ocr/swift.txt
+      - name: Corrective contract RED in isolated copy
+        run: |
+          # This is a post-implementation contract verification, not evidence
+          # that the original Swift implementation followed strict RED-first.
+          ocr_red_dir="$(mktemp -d)"
+          trap 'rm -rf "$ocr_red_dir"' EXIT
+          cp mobile/scripts/native-ocr-fixtures.swift "$ocr_red_dir/fixtures.swift"
+          if xcrun swiftc -parse-as-library "$ocr_red_dir/fixtures.swift" -o "$ocr_red_dir/fixtures" > mobile/artifacts/native-ocr/contract-red.log 2>&1; then
+            echo 'Expected missing production engine compilation to fail'
+            exit 1
+          fi
+          grep -q "cannot find 'SalutecaOcrEngine' in scope" mobile/artifacts/native-ocr/contract-red.log
+          echo 'Expected absent-engine contract compilation failure confirmed'
+      - name: Current engine GREEN with synthetic native fixtures
+        run: bash mobile/scripts/check-native-ocr.sh 2>&1 | tee mobile/artifacts/native-ocr/fixtures-green.log
+      - name: Preserve native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ocr-verification-${{ github.run_id }}
+          path: mobile/artifacts/native-ocr/
+          if-no-files-found: error

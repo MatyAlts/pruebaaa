@@ -1,0 +1,140 @@
+import { act, fireEventAsync, renderAsync, waitFor } from "@testing-library/react-native";
+import { Modal } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { FamilyScreen, type FamilyMember } from "../src/FamilyScreen";
+import { useLayoutEffect } from "react";
+
+jest.setTimeout(30000);
+const member: FamilyMember = { id: "fictional-id", uuid: "fictional-family", name: "Persona de prueba", studyCount: 0, lastStudyDate: null };
+const pdf = { open: jest.fn() };
+test("native creation renders a clean form under stack header without a second modal or cancel header", async () => {
+  const get = jest.fn().mockResolvedValue({ items: [] }); const write = jest.fn().mockResolvedValue({ familyMember: member });
+  const saved = jest.fn(); const navigation = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={{ get, write }} pdf={pdf} canWrite flowMode="create" onSaved={saved} onNavigationState={navigation} />);
+  expect(get).not.toHaveBeenCalled();
+  expect(screen.UNSAFE_queryAllByType(Modal).filter(node => node.props.visible)).toHaveLength(0);
+  expect(screen.UNSAFE_getByType(SafeAreaView).props.edges).toEqual(["left", "right", "bottom"]);
+  expect(screen.queryByRole("button", { name: "Cancelar" })).toBeNull();
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: false, dirty: false }));
+  await fireEventAsync.changeText(screen.getByLabelText("Nombre del familiar"), "  Persona nueva  ");
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: false, dirty: true }));
+  await fireEventAsync.press(screen.getByRole("button", { name: "Guardar familiar" }));
+  expect(write).toHaveBeenCalledWith("/family-members", "POST", { name: "Persona nueva" });
+  expect(saved).toHaveBeenCalledTimes(1);
+});
+test("native folder reads canonical ownership before exposing native edit/upload/detail callbacks", async () => {
+  const get = jest.fn().mockImplementation((path: string) => Promise.resolve(path === "/family-members/fictional-family" ? { familyMember: member } : path === "/family-members" ? { items: [] } : { items: [{ id: "fictional-study", title: "Control de prueba", date: "18-09-2026", patient: { kind: "family", id: member.id, name: member.name } }], nextCursor: null }));
+  const edit = jest.fn(); const upload = jest.fn(); const openStudy = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={{ get, write: jest.fn() }} pdf={pdf} canWrite flowMode="folder" familyUuid={member.uuid} onEditFamily={edit} onUploadFamily={upload} onOpenStudy={openStudy} />);
+  await waitFor(() => expect(screen.getByText("Control de prueba")).toBeTruthy());
+  expect(get).toHaveBeenCalledWith("/family-members/fictional-family");
+  expect(get).not.toHaveBeenCalledWith("/family-members");
+  expect(screen.UNSAFE_queryAllByType(Modal).filter(node => node.props.visible)).toHaveLength(0);
+  expect(screen.queryByRole("button", { name: "Volver a familia" })).toBeNull();
+  await fireEventAsync.press(screen.getByRole("button", { name: "Editar nombre" })); expect(edit).toHaveBeenCalledWith(member.uuid);
+  await fireEventAsync.press(screen.getByRole("button", { name: "Cargar estudio" })); expect(upload).toHaveBeenCalledWith(member.uuid);
+  await fireEventAsync.press(screen.getByRole("button", { name: "Control de prueba" })); expect(openStudy).toHaveBeenCalledWith("fictional-study");
+});
+test("native editing tracks initial name, busy write and saved state without duplicate PATCH", async () => {
+  let finish!: (value: unknown) => void;
+  const get = jest.fn().mockImplementation((path: string) => Promise.resolve(path === "/family-members/fictional-family" ? { familyMember: member } : { items: [] }));
+  const write = jest.fn(() => new Promise(resolve => { finish = resolve; }));
+  const saved = jest.fn(); const navigation = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={{ get, write: write as never }} pdf={pdf} canWrite flowMode="edit" familyUuid={member.uuid} onSaved={saved} onNavigationState={navigation} />);
+  await waitFor(() => expect(screen.getByLabelText("Nombre del familiar").props.value).toBe(member.name));
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: false, dirty: false }));
+  await fireEventAsync.changeText(screen.getByLabelText("Nombre del familiar"), "Nuevo nombre");
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: false, dirty: true }));
+  await fireEventAsync.press(screen.getByRole("button", { name: "Guardar familiar" }));
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: true, dirty: true }));
+  await fireEventAsync.press(screen.getByRole("button", { name: "Guardar familiar" })); expect(write).toHaveBeenCalledTimes(1);
+  expect(write).toHaveBeenCalledWith("/family-members/fictional-family", "PATCH", { name: "Nuevo nombre" });
+  await act(async () => finish({ familyMember: { ...member, name: "Nuevo nombre" } }));
+  expect(saved).toHaveBeenCalledTimes(1);
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: false, dirty: false }));
+});
+test("mounted family tab refreshes real folder counts after native flow revision changes", async () => {
+  const get = jest.fn().mockResolvedValueOnce({ items: [member] }).mockResolvedValue({ items: [{ ...member, studyCount: 3 }] });
+  const client = { get, write: jest.fn() };
+  const screen = await renderAsync(<FamilyScreen client={client} pdf={pdf} revision={0} />);
+  expect(screen.getByText("0 estudios")).toBeTruthy();
+  await screen.rerenderAsync(<FamilyScreen client={client} pdf={pdf} revision={1} />);
+  await waitFor(() => expect(screen.getByText("3 estudios")).toBeTruthy());
+  expect(get).toHaveBeenCalledTimes(2);
+});
+test("native form cannot submit when the existing write capability is unavailable", async () => {
+  const write = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={{ get: jest.fn(), write }} pdf={pdf} flowMode="create" />);
+  expect(screen.getByRole("button", { name: "Guardar familiar" })).toBeDisabled();
+  expect(screen.getByLabelText("Nombre del familiar").props.editable).toBe(false);
+  await fireEventAsync.press(screen.getByRole("button", { name: "Guardar familiar" }));
+  expect(write).not.toHaveBeenCalled();
+});
+test("a late canonical folder read from a previous account or uuid stays hidden", async () => {
+  let finish!: (value: unknown) => void;
+  const previous = { get: jest.fn(() => new Promise(resolve => { finish = resolve; })), write: jest.fn() };
+  const currentMember = { ...member, uuid: "current-fictional-family", name: "Carpeta actual" };
+  const current = { get: jest.fn().mockImplementation((path: string) => Promise.resolve(path === "/family-members/current-fictional-family" ? { familyMember: currentMember } : { items: [], nextCursor: null })), write: jest.fn() };
+  const edit = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={previous as never} pdf={pdf} canWrite flowMode="folder" familyUuid={member.uuid} onEditFamily={edit} />);
+  await screen.rerenderAsync(<FamilyScreen client={current} pdf={pdf} canWrite flowMode="folder" familyUuid={currentMember.uuid} onEditFamily={edit} />);
+  await waitFor(() => expect(screen.getByText("Estudios de Carpeta actual")).toBeTruthy());
+  await act(async () => finish({ familyMember: member }));
+  expect(screen.queryByText("Estudios de Persona de prueba")).toBeNull();
+  await fireEventAsync.press(screen.getByRole("button", { name: "Editar nombre" }));
+  expect(edit).toHaveBeenCalledWith(currentMember.uuid);
+});
+test("unowned native edit read exposes retry without a writable draft", async () => {
+  const write = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={{ get: jest.fn().mockRejectedValue(new Error("No encontramos ese familiar.")), write }} pdf={pdf} canWrite flowMode="edit" familyUuid={member.uuid} />);
+  expect(screen.getByRole("alert")).toHaveTextContent("No encontramos ese familiar.");
+  expect(screen.getByRole("button", { name: "Reintentar" })).toBeTruthy();
+  expect(screen.queryByLabelText("Nombre del familiar")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Guardar familiar" })).toBeNull();
+  expect(write).not.toHaveBeenCalled();
+});
+test("native folder deletion keeps the guarded confirmation sheet and pending cleanup proof", async () => {
+  const navigation = jest.fn(); const exit = jest.fn();
+  const get = jest.fn().mockImplementation((path: string) => Promise.resolve(path === "/family-members/fictional-family" ? { familyMember: member } : path.startsWith("/operations/") ? { operationId: "test-operation", status: "pending" } : { items: [], nextCursor: null }));
+  const write = jest.fn().mockResolvedValue({ operationId: "test-operation", status: "pending" });
+  const client = { get, write };
+  const screen = await renderAsync(<FamilyScreen client={client} pdf={pdf} canDelete flowMode="folder" familyUuid={member.uuid} onExit={exit} onNavigationState={navigation} />);
+  await fireEventAsync.press(screen.getByRole("button", { name: "Eliminar familiar" }));
+  const sheets = screen.UNSAFE_getAllByType(Modal).filter(node => node.props.visible);
+  expect(sheets).toHaveLength(1);
+  expect(sheets[0].props.presentationStyle).toBe("pageSheet");
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: true, dirty: false }));
+  await fireEventAsync.changeText(screen.getByLabelText("Escribí misaluteca para confirmar"), "misaluteca");
+  await fireEventAsync.press(screen.getByRole("button", { name: "Eliminar definitivamente" }));
+  expect(write).toHaveBeenCalledWith("/family-members/fictional-family", "DELETE", { confirmation: "misaluteca" });
+  expect(screen.getByText("Familiar eliminado. Limpieza de archivos pendiente.")).toBeTruthy();
+  expect(navigation).toHaveBeenLastCalledWith(expect.objectContaining({ blocked: false, dirty: false }));
+  await screen.rerenderAsync(<FamilyScreen client={client} pdf={pdf} canDelete flowMode="folder" familyUuid={member.uuid} revision={1} onExit={exit} onNavigationState={navigation} />);
+  expect(get.mock.calls.filter(([path]) => path === "/family-members/fictional-family")).toHaveLength(1);
+  expect(screen.getByText("Familiar eliminado. Limpieza de archivos pendiente.")).toBeTruthy();
+  await fireEventAsync.press(screen.getByRole("button", { name: "Volver a familia" })); expect(exit).toHaveBeenCalledTimes(1);
+  await screen.unmountAsync();
+});
+test("native parent can observe the initial blocked ownership load during layout commit", async () => {
+  const navigation = jest.fn(); const observed = jest.fn();
+  const client = { get: jest.fn(() => new Promise(() => {})), write: jest.fn() };
+  function Parent() {
+    useLayoutEffect(() => { observed(navigation.mock.calls.at(-1)?.[0]); }, []);
+    return <FamilyScreen client={client as never} pdf={pdf} canWrite flowMode="edit" familyUuid={member.uuid} onNavigationState={navigation} />;
+  }
+  const screen = await renderAsync(<Parent />);
+  expect(observed).toHaveBeenCalledWith(expect.objectContaining({ blocked: true, dirty: false }));
+  await screen.unmountAsync();
+});
+test("navigation revision changes for a second edit while the form stays dirty", async () => {
+  const navigation = jest.fn();
+  const screen = await renderAsync(<FamilyScreen client={{ get: jest.fn(), write: jest.fn() }} pdf={pdf} canWrite flowMode="create" onNavigationState={navigation} />);
+  await fireEventAsync.changeText(screen.getByLabelText("Nombre del familiar"), "Primer nombre");
+  const first = navigation.mock.calls.at(-1)?.[0];
+  expect(first.dirty).toBe(true);
+  expect(typeof first.revision).toBe("string");
+  await fireEventAsync.changeText(screen.getByLabelText("Nombre del familiar"), "Segundo nombre");
+  const second = navigation.mock.calls.at(-1)?.[0];
+  expect(second.dirty).toBe(true);
+  expect(second.revision).not.toBe(first.revision);
+});

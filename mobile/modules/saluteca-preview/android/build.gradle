@@ -1,0 +1,19 @@
+group = "expo.modules.salutecapreview"
+version = "0.1.0"
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+  namespace "expo.modules.salutecapreview"
+  compileSdk 36
+
+  defaultConfig {
+    minSdk 24
+  }
+}
+
+dependencies {
+  implementation project(":expo-modules-core")
+  implementation "com.google.mlkit:text-recognition:16.0.1"
+}

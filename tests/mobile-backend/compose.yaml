@@ -1,0 +1,17 @@
+name: misaluteca-mobile-tests
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: isolated-test-password
+      MYSQL_DATABASE: misaluteca_mobile_test
+    ports:
+      - '127.0.0.1:33316:3306'
+      - '127.0.0.1:3306:3306'
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-pisolated-test-password']
+      interval: 3s
+      timeout: 3s
+      retries: 30

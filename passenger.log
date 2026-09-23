@@ -1,0 +1,65 @@
+App 2983821 output: Running under Passenger: listen('passenger')
+App 2983821 output: ⨯ The requested resource isn't a valid image for /images/logoblanco.png received null
+App 2983821 output: ⨯ The requested resource isn't a valid image for /images/logoblanco.png received null
+App 2983821 output: (node:2983821) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+App 2983821 output: (Use `node --trace-deprecation ...` to show where the warning was created)
+App 2983821 output: Profile completo recibido de Google: {
+App 2983821 output:   iss: 'https://accounts.google.com',
+App 2983821 output:   azp: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   aud: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   sub: '111547507295247159305',
+App 2983821 output:   email: 'duckwitzgf@gmail.com',
+App 2983821 output:   email_verified: true,
+App 2983821 output:   at_hash: 'nDBHSxMRLhrX22gCveAKJw',
+App 2983821 output:   name: 'Gerardo Duckwitz',
+App 2983821 output:   picture: 'https://lh3.googleusercontent.com/a/ACg8ocISX2RRhGneR6LXsVLtFkRP265G7t0381HiPFQ6fxyuKFyiDHwr=s96-c',
+App 2983821 output:   given_name: 'Gerardo',
+App 2983821 output:   family_name: 'Duckwitz',
+App 2983821 output:   iat: 1775604397,
+App 2983821 output:   exp: 1775607997
+App 2983821 output: }
+App 2983821 output: googleProfile {
+App 2983821 output:   iss: 'https://accounts.google.com',
+App 2983821 output:   azp: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   aud: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   sub: '111547507295247159305',
+App 2983821 output:   email: 'duckwitzgf@gmail.com',
+App 2983821 output:   email_verified: true,
+App 2983821 output:   at_hash: 'nDBHSxMRLhrX22gCveAKJw',
+App 2983821 output:   name: 'Gerardo Duckwitz',
+App 2983821 output:   picture: 'https://lh3.googleusercontent.com/a/ACg8ocISX2RRhGneR6LXsVLtFkRP265G7t0381HiPFQ6fxyuKFyiDHwr=s96-c',
+App 2983821 output:   given_name: 'Gerardo',
+App 2983821 output:   family_name: 'Duckwitz',
+App 2983821 output:   iat: 1775604397,
+App 2983821 output:   exp: 1775607997
+App 2983821 output: }
+App 2983821 output: Profile completo recibido de Google: {
+App 2983821 output:   iss: 'https://accounts.google.com',
+App 2983821 output:   azp: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   aud: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   sub: '111547507295247159305',
+App 2983821 output:   email: 'duckwitzgf@gmail.com',
+App 2983821 output:   email_verified: true,
+App 2983821 output:   at_hash: 'FvxXqbmA3eXUyjp9L3nwUA',
+App 2983821 output:   name: 'Gerardo Duckwitz',
+App 2983821 output:   picture: 'https://lh3.googleusercontent.com/a/ACg8ocISX2RRhGneR6LXsVLtFkRP265G7t0381HiPFQ6fxyuKFyiDHwr=s96-c',
+App 2983821 output:   given_name: 'Gerardo',
+App 2983821 output:   family_name: 'Duckwitz',
+App 2983821 output:   iat: 1775604479,
+App 2983821 output:   exp: 1775608079
+App 2983821 output: }
+App 2983821 output: googleProfile {
+App 2983821 output:   iss: 'https://accounts.google.com',
+App 2983821 output:   azp: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   aud: '519783185708-qphk014av45hf87o9faeobcdnu94o8hh.apps.googleusercontent.com',
+App 2983821 output:   sub: '111547507295247159305',
+App 2983821 output:   email: 'duckwitzgf@gmail.com',
+App 2983821 output:   email_verified: true,
+App 2983821 output:   at_hash: 'FvxXqbmA3eXUyjp9L3nwUA',
+App 2983821 output:   name: 'Gerardo Duckwitz',
+App 2983821 output:   picture: 'https://lh3.googleusercontent.com/a/ACg8ocISX2RRhGneR6LXsVLtFkRP265G7t0381HiPFQ6fxyuKFyiDHwr=s96-c',
+App 2983821 output:   given_name: 'Gerardo',
+App 2983821 output:   family_name: 'Duckwitz',
+App 2983821 output:   iat: 1775604479,
+App 2983821 output:   exp: 1775608079
+App 2983821 output: }

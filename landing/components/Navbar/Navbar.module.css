@@ -1,0 +1,217 @@
+/* Navbar Transparent Overlay */
+.navbarCustom {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  border-radius: 50px;
+  margin: 1rem auto;
+  width: 95%;
+  max-width: none;
+  padding: 0.75rem 2rem !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .navbarCustom {
+    padding: 0.6rem 1.25rem !important;
+    margin: 0.5rem auto;
+    width: 94%;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.97);
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .navbarCustom .navbarBrandCustom {
+    color: #2F416A !important;
+  }
+
+  .navbarCustom .navLinkCustom {
+    color: #1e293b !important;
+  }
+
+  .navbarCustom .navLinkCustom:hover {
+    color: #2F416A !important;
+  }
+
+  .navbarTogglerCustom {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .navbarCustom {
+    width: 95%;
+  }
+}
+
+.navbarScrolled {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  border-color: transparent;
+  padding: 0.5rem 2rem !important;
+  margin: 0.5rem auto;
+}
+
+@media (max-width: 768px) {
+  .navbarScrolled {
+    padding: 0.4rem 1rem !important;
+  }
+}
+
+.navbarBrandCustom {
+  color: #fff !important;
+  transition: color 0.3s ease;
+}
+
+.navbarScrolled .navbarBrandCustom {
+  color: #2F416A !important;
+}
+
+.navbarBrandText {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .navbarLogo {
+    width: 40px !important;
+    height: auto !important;
+  }
+
+  .navbarBrandText {
+    font-size: 0.95rem;
+  }
+}
+
+.navLinkCustom {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.navLinkCustom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 70%;
+  height: 2px;
+  background: #7ABB85;
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.navLinkCustom:hover {
+  color: #fff !important;
+}
+
+.navLinkCustom:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+.navbarScrolled .navLinkCustom {
+  color: #000 !important;
+}
+
+.navbarScrolled .navLinkCustom:hover {
+  color: #2F416A !important;
+}
+
+.navbarScrolled .navLinkCustom:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+.navLinkLogin {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.navLinkLogin:hover {
+  color: var(--accent-teal) !important;
+}
+
+.navbarScrolled .navLinkLogin {
+  color: #2F416A !important;
+}
+
+.navbarScrolled .navLinkLogin:hover {
+  color: #233257 !important;
+}
+
+.btnNavbarLogin {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid rgba(255, 255, 255, 0.95) !important;
+  color: #2F416A !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+
+.btnNavbarLogin:hover {
+  background: #fff !important;
+  border-color: #fff !important;
+  color: #233257 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+}
+
+.navbarScrolled .btnNavbarLogin {
+  background: transparent;
+  border-color: #2F416A;
+  color: #2F416A;
+}
+
+.navbarScrolled .btnNavbarLogin:hover {
+  background: #2F416A;
+  border-color: #2F416A;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(1, 99, 144, 0.3);
+}
+
+.btnNavbarCta {
+  background: #2F416A;
+  border: 2px solid #2F416A;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+
+.btnNavbarCta:hover {
+  background: #233257;
+  border-color: #233257;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(1, 99, 144, 0.3);
+}
+
+.navbarTogglerCustom {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.navbarScrolled .navbarTogglerCustom {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.navbarTogglerCustom .navbarTogglerIcon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.navbarScrolled .navbarTogglerCustom .navbarTogglerIcon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(0, 0, 0, 0.7)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}

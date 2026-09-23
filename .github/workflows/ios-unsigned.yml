@@ -1,0 +1,115 @@
+name: iOS unsigned IPA
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: Origen HTTPS público del backend de prueba
+        required: true
+        default: https://saluteca.matyalts.me
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ios-unsigned-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      CI: '1'
+      EXPO_PUBLIC_API_BASE_URL: ${{ inputs.api_base_url }}
+      DEVELOPER_DIR: /Applications/Xcode_26.4.1.app/Contents/Developer
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Preflight de herramientas
+        run: |
+          node -e 'const u=new URL(process.env.EXPO_PUBLIC_API_BASE_URL); if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash||u.pathname!=="/")throw Error("API base URL debe ser un origen HTTPS")'
+          mkdir -p mobile/artifacts/diagnostics
+          xcodebuild -version | tee mobile/artifacts/diagnostics/xcode.txt
+          grep -q '^Xcode 26\.4\.1$' mobile/artifacts/diagnostics/xcode.txt
+          node --version | tee mobile/artifacts/diagnostics/node.txt
+          npm --version | tee mobile/artifacts/diagnostics/npm.txt
+          pod --version | tee mobile/artifacts/diagnostics/pods.txt
+          python3 --version | tee mobile/artifacts/diagnostics/python.txt
+          printf '%s\n' "$ImageOS $ImageVersion" > mobile/artifacts/diagnostics/runner.txt
+      - run: npm ci --no-audit --no-fund
+      - run: python3 -m pip install -r mobile/scripts/requirements.txt
+      - name: Validaciones móviles
+        run: |
+          npm --workspace misaluteca-ios run lint
+          npm --workspace misaluteca-ios run typecheck
+          npm --workspace misaluteca-ios test
+          npm --workspace misaluteca-ios run test:scripts
+          npm --workspace misaluteca-ios exec -- expo install --check
+          npm --workspace misaluteca-ios exec -- expo-doctor
+      - name: Generar proyecto iOS
+        run: npm --workspace misaluteca-ios exec -- expo prebuild --platform ios --no-install 2>&1 | tee mobile/artifacts/diagnostics/prebuild.log
+      - name: Registrar catálogo de icono generado
+        run: find mobile/ios -type d -name AppIcon.appiconset -exec cp -R '{}' mobile/artifacts/diagnostics/ \;
+      - name: Instalar pods
+        run: |
+          cd mobile/ios
+          pod install 2>&1 | tee ../artifacts/diagnostics/pod-install.log
+      - name: Compilar Release para dispositivo sin firma
+        run: |
+          xcodebuild -workspace mobile/ios/MiSaluteca.xcworkspace -scheme MiSaluteca \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath mobile/build -resultBundlePath mobile/artifacts/diagnostics/build.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee mobile/artifacts/diagnostics/xcodebuild.log
+      - name: Registrar icono y metadatos compilados
+        run: |
+          /usr/bin/assetutil --info mobile/build/Build/Products/Release-iphoneos/MiSaluteca.app/Assets.car > mobile/artifacts/diagnostics/app-assets.json
+          plutil -convert json -o mobile/artifacts/diagnostics/app-info.json mobile/build/Build/Products/Release-iphoneos/MiSaluteca.app/Info.plist
+      - name: Empaquetar y comprobar candidato
+        run: |
+          python3 mobile/scripts/package_ipa.py mobile/build/Build/Products/Release-iphoneos mobile/artifacts/MiSaluteca-unsigned.ipa
+          python3 mobile/scripts/verify_ipa.py mobile/artifacts/MiSaluteca-unsigned.ipa | tee mobile/artifacts/verification.json
+          node <<'NODE'
+          const fs = require('fs');
+          const {execFileSync} = require('child_process');
+          const pkg = require('./mobile/package.json');
+          const manifest = {
+            commit: process.env.GITHUB_SHA,
+            run: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+            signing: 'unsigned; requiere firma local',
+            sdk: pkg.dependencies.expo, reactNative: pkg.dependencies['react-native'],
+            react: pkg.dependencies.react, minimumIOS: '16.4',
+            node: process.version,
+            xcode: execFileSync('xcodebuild', ['-version'], {encoding:'utf8'}).trim(),
+            cocoaPods: execFileSync('pod', ['--version'], {encoding:'utf8'}).trim(),
+            imageOS: process.env.ImageOS, imageVersion: process.env.ImageVersion,
+            verification: fs.readFileSync('mobile/artifacts/verification.json','utf8').trim(),
+          };
+          fs.writeFileSync('mobile/artifacts/manifest.json', JSON.stringify(manifest,null,2));
+          NODE
+      - name: Publicar IPA comprobado y manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiSaluteca-unsigned-${{ github.sha }}
+          path: |
+            mobile/artifacts/MiSaluteca-unsigned.ipa
+            mobile/artifacts/manifest.json
+            mobile/artifacts/verification.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Publicar diagnósticos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-diagnostics-${{ github.run_id }}
+          path: mobile/artifacts/diagnostics/
+          if-no-files-found: warn
+          retention-days: 7

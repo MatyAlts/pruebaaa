@@ -1,0 +1,89 @@
+## Context
+
+Ver motivación en `proposal.md`. App Expo 57.0.23/RN 0.86.3 instalada por Impactor con `com.matyalts.misaluteca` conservado; Jest/RNTL y scripts Python ya existen. La web usa Google/NextAuth JWT y encuentra `users.id` por email en `src/lib/auth/config.ts`; la ruta activa NextAuth importa esa configuración. `lib/auth.ts` duplica configuración y es utilizada por descarga legacy: no se modifica globalmente dentro de esta vertical.
+
+`StudyService.getStudyById` delega lectura con userId, el repositorio hidrata `estudios_archivos` y fallback legacy sin id de archivo. Listado actual no pagina, ordena fechas strings y contiene estudios familiares. Server Action convierte errores en `[]`: la API nueva debe llamar capa servicio/repositorio directamente. Descarga web autoriza owner pero permite fallback legacy ante fileId desconocido: no replicar ese fallback en API móvil. La web mantiene baseline conocido de lint con 23 errores y 48 warnings; TypeScript pasó y el build requiere OPENAI_API_KEY de servidor. Los problemas de lint no se corrigen aquí ni se cuentan como checks verdes.
+
+## Goals / Non-Goals
+
+**Goals:** integración de lectura real, identidad consistente, protocolos explícitos con tests adversos, rollout reversible y comprobación de iPhone independiente de mocks.
+
+**Non-Goals:** actuar como proveedor OAuth público general, reescribir NextAuth, permitir cookies web como credencial de API móvil, insertar un secreto de cliente en el IPA, generar paridad total de pantallas o retener estudios offline.
+
+## Decisions
+
+### 1. Navegador del sistema y puente acotado sobre NextAuth
+
+Expo AuthSession/WebBrowser abre navegador de autenticación del sistema, nunca WebView. Google continúa usando el callback web `/api/auth/callback/google` y sus credenciales de servidor existentes; RN no obtiene Google client secret ni copia cookies. En el puente, el servidor obtiene exclusivamente `session.user.userId` de configuración canónica, verifica usuario existente y no acepta userId/email del cliente. La autorización móvil usa confirmación visible de cuenta y POST protegido por token CSRF ligado a cookie del intento; evita autorizar silenciosamente una sesión web de otra cuenta. La UI permite elegir otra cuenta mediante login Google antes de confirmar.
+
+Flujo propuesto: cliente genera state y verifier criptográficos y challenge S256; `POST /api/mobile/v1/auth/requests` registra challenge/state y devuelve URL HTTPS de autorización con requestId opaco. Intento vence a los cinco minutos. El navegador abre esa URL, inicia Google si necesario, vuelve al puente y confirma vinculación. El servidor emite código aleatorio de 256 bits, guarda solo hash con userId/request/challenge/redirect, expira en 60 segundos y redirige a `com.matyalts.misaluteca://auth/callback?code=…&state=…`. Cliente valida state e intercambia código+verifier por POST HTTPS. Transacción consume código una sola vez; prueba incorrecta no emite sesión. Redirect viene de allowlist servidor exacta, nunca de URL arbitraria aportada al vuelo. En error/cancelación no queda sesión parcial. Registrar el scheme explícitamente en config Expo; no inferirlo de bundle ID. PKCE protege código frente a intercepción de private scheme, no hace al cliente confidencial.
+
+Alternativas descartadas: Google OAuth nativo nuevo exige configuración adicional y cambia vinculación; JWT web copiado acopla cookies y dificulta revocación; tokens en deep link exponen credenciales. Este puente es un protocolo privado acotado y debe recibir revisión de seguridad, no presentarse como una implementación OAuth certificada. [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252) sustenta navegador externo/private scheme; [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) sustenta PKCE. APIs móviles basadas en [Expo AuthSession SDK 57](https://docs.expo.dev/versions/v57.0.0/sdk/auth-session/) deben verificarse contra versión instalada durante apply.
+
+### 2. Tokens opacos revocables con renovación rotativa
+
+Access token aleatorio 256 bits con vida de 15 minutos; refresh token aleatorio 256 bits con máximo absoluto de siete días desde login. Estos tiempos, los cinco minutos del intento y 60 segundos del código son parámetros propuestos configurables del servidor a aprobar, no propiedades existentes ni restricciones de Apple. Guardar exclusivamente hashes SHA-256 de tokens de alta entropía, timestamps UTC y userId en MySQL; access siempre valida sesión/expiración/revocación en DB para que logout tenga efecto inmediato. Añadir tablas aditivas de solicitudes/códigos, sesiones y generaciones de refresh usadas/revocadas con índices por hashes, FK user y expiración. No alterar columnas de estudios/users ni almacenar Google tokens. Expirados se limpian mediante tarea operativa documentada o eliminación oportunista limitada; sin nuevo servicio externo.
+
+Refresh se consume y rota atómicamente en transacción, preservando historia de hashes hasta expiración de la familia; reuso revoca familia completa. Access anterior se invalida al renovar. Cliente serializa renovación (single flight) y reintenta cada petición como máximo una vez. Un timeout ambiguo de refresh no reintenta el token consumido indefinidamente: vuelve a login si no puede recuperar sesión válida, evitando replay accidental. Sesión válida GET `/me`; cancelación y 401 definitivo limpian contexto. En cliente refresh en Expo SecureStore (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), access solo en memoria; tras arranque renovar antes de leer estudios. Tokens no entran en AsyncStorage, URLs, telemetry ni logs; respuestas privadas/auth usan `Cache-Control: no-store`.
+
+Logout intenta revocación autenticada, luego elimina siempre tokens/memoria/cache y aborta requests/visor. Sin red comunica que limpieza local se realizó y revocación remota no se confirmó; no promete invalidación de token sustraído. No persiste tokens para intentar revocar después de logout. La expiración limita riesgo residual. No cerrar sesión NextAuth web. Alternative descartada: access JWT puramente stateless permite acceso residual tras logout salvo consultas revocatorias equivalentes.
+
+### 3. Contrato HTTP pequeño y ordenación estable
+
+Base configurable `EXPO_PUBLIC_API_BASE_URL` HTTPS sin secreto; servidor tiene origen HTTPS canónico configurado, allowlist de scheme/redirect y Google web ya operativo. Origin/path de API se validan al arranque; build de integración falla sin base URL válida. Nunca fallback automático a localhost/servidor original. Browser authorize mismo origen backend; descargas no siguen redirects que propaguen Authorization a otro origen.
+
+| Endpoint bajo `/api/mobile/v1` | Contrato |
+| --- | --- |
+| `POST /auth/requests` | challenge S256/state, redirect fijo permitido; requestId + authorizationUrl; límite 10 solicitudes/minuto/IP y tamaño acotado, almacenamiento servidor con control atómico |
+| Página `/mobile/authorize?requestId=…` | sesión web canónica, confirmación de cuenta y emisión POST con CSRF; no emitir tokens |
+| `POST /auth/token` | code+verifier, devuelve accessToken/expiresIn/refreshToken/sessionExpiresAt; 400 `INVALID_GRANT` para fallo de prueba/código |
+| `POST /auth/refresh` | refreshToken, rotación; 401 sesión inválida, 429 throttling |
+| `POST /auth/logout` | access Bearer o refresh en cuerpo si access expiró; revoca familia y 204 idempotente |
+| `GET /me` | `{user:{id,name,email,image}}` mínimo necesario |
+| `GET /studies?limit=20&cursor=…` | `{items:StudySummary[],nextCursor:string|null}`; limit entero 1–50, cursor validado, 400 inválido |
+| `GET /studies/{id}` | `{study:StudyDetail}` |
+| `GET /studies/{id}/files/{fileId}` | bytes PDF autorizado, Content-Type verificado, filename saneado, no-store |
+
+Todas lecturas exigen Bearer; 401 inválido/vencido/revocado. Recursos ajenos/familiares o inexistentes dan 404 idéntico, evitando enumeración. 403 se reserva para operación explícitamente prohibida sin revelar recursos; no usarlo para distinguir existencia de estudio ajeno. 500/503 no exponen SQL/paths y no se convierten en éxito vacío. Error JSON `{error:{code,message},requestId}`; mensajes cliente españoles y requestId diagnóstico sin información clínica. Aplicar throttling 10 intentos/minuto por IP para creación/intercambio/refresh mediante almacenamiento servidor consistente, no mapa local efímero; pruebas verifican rechazo y recuperación temporal.
+
+Primer listado solo `e.id_usuario = session.userId AND e.id_familiar IS NULL`, orden `e.id DESC`, cursor keyset último id, máximo acotado en SQL (no cargar todo y slice). Esta vertical prioriza orden estable de incorporación; no usa `fecha` DD-MM-YYYY como orden cronológico. Nuevas funciones de lectura comparten mapper/consulta y preservan funciones web. DTO campos `id,uuid,title,date,institution,medico,conclusion,description,files[]` según resumen/detalle; opcionales normalizados a null, fechas como contrato legacy DD-MM-YYYY respetando `config/date.ts`. `files[]` expone `id,name,mimeType,size`, jamás fileKey/userEmail/ruta física. Para fila multiarchivo id real string; para archivo legacy id literal `legacy`, válido únicamente si la fila legacy propia realmente existe. Desconocido no cae a legacy.
+
+### 4. Descarga autorizada y visor nativo controlado
+
+Adaptador servidor valida estudio propio y fileId antes de resolver almacenamiento; valida confinamiento de path real al upload root y filename, detecta archivo ausente y contenido no PDF. Mantiene filesystem actual sin migración de storage. Endpoint de esta vertical solo permite PDF: tipo no soportado 415; lista/detalle muestran otros formatos como aún no disponibles. Límite móvil de descarga 10 MB consistente con límite observado; cliente aborta exceso o MIME/contenido incorrecto, borra parciales. Nunca abre URL remota con token por query.
+
+Cliente usa Expo FileSystem compatible SDK 57 para descarga autenticada a directorio cache dedicado con nombre aleatorio; sin persistencia de DTOs clínicos. Visor PDFKit iOS propio sin botones de compartir/exportar mediante módulo Expo local mínimo recibe exclusivamente URL dentro de ese directorio y devuelve dismiss/error; así se puede eliminar inmediatamente tras cierre sin compartir archivo fuera del control de la app. Alternativa library compatible se acepta solo si expone cierre fiable y queda verificada con RN0.86/Expo57, sin cambiar contratos. No usar share sheet como logout seguro de documento exportado. Limpieza al dismiss, falla, logout y siguiente inicio, incluyendo restos tras crash. Durante sesión, cleanup no borra documento que el visor tiene activo; logout lo cierra antes de borrar. Generation ID/AbortController impide respuesta tardía reinstalar datos o archivo tras logout. iOS cache no equivale a borrado forense; no se promete eliminar copias creadas por el sistema o capturas.
+
+### 5. Navegación y tests por fronteras
+
+Agregar stack nativo mínimo login/lista/detalle; UI accesible y branding existentes, sin Bootstrap/DOM/Server Actions. Estados sesión desconocida, autenticada, sesión vencida y sin conexión no se confunden. Tests móviles existentes establecen safety net; TDD para session coordinator/transporte, render/acciones y ciclo de archivo con mocks de fronteras, sin mocks que afirmen autenticación real. Backend necesita runner aislado Node/TS para servicios y handlers nuevos con pruebas integración MySQL de códigos consumidos, rotación concurrente y ownership. DB de prueba dedicada jamás producción. No prueba de existencia de YAML/DTO ni snapshots vacíos. Cada comportamiento RED ejecutado antes de producción, GREEN, mínimo dos casos y todos escenarios; tabla evidencia por tarea.
+
+Baseline web de lint conocido fallido obliga reportar y detener cambios afectados existentes si fallan sus pruebas, sin arreglar preexistentes. Nuevo código backend se valida con runner/typecheck focalizado y TypeScript global; reportar lint global fallido transparentemente. Si no se puede obtener safety net relevante para un módulo existente, obtener plan revisado antes de tocarlo: no marcar tarea completa por ausencia de runner. iPhone real validará Google redirect, SecureStore, PDFKit, logout y API desplegada; CI unitario no sustituye ese resultado.
+
+## Risks / Trade-offs
+
+- [Auth CRITICAL y nueva migración de sesiones] → revisar este diseño y SQL aditivo antes de código/aplicación a datos; autorización específica requerida por reglas del proyecto.
+- [Backend HTTPS no identificado para clon] → usuario debe indicar URL y despliegue; no modificar producción ni publicar infraestructura sin autorización; integración/build funcional pendientes hasta endpoint accesible.
+- [Sesión browser distinta de usuario esperado] → confirmación visible, cambio de cuenta y binding intento/CSRF/PKCE; probar cuentas separadas web/iOS.
+- [Private scheme interceptable/Impactor modifica identidad] → PKCE + allowlist + scheme explícito; evidencia anterior conserva bundle ID, pero validar retorno en nueva build.
+- [Datos médicos temporales/visor nativo] → directorio dedicado, cleanup y pruebas físicas; nada clínico en logs ni persistencia de listado.
+- [Preexistentes web y duplicación auth] → wrapper nuevo usa configuración canónica; no refactor global, checks focalizados y baseline reportado.
+- [Nuevo código nativo PDFKit] → build macOS y prueba real; mantener módulo mínimo, no asumir Expo Go cubre native module.
+
+## Migration Plan
+
+Primero aprobación del diseño crítico y revisión de migración; después tests/implementación local y entorno dedicado, deployment backend autorizado con migración aditiva y Google web callback existente verificado. Compilar IPA con base API correspondiente y scheme, instalar y ejecutar vertical con dos usuarios de prueba/documentos no sensibles. No archivar por checks unitarios solamente. Rollback: deshabilitar rutas móviles/revocar familias y volver al IPA anterior; preservar tablas nuevas sin borrar usuarios/estudios. Eliminar tablas únicamente con revisión operativa separada una vez que no haya consumidores. Ningún pipeline IPA ejecuta automáticamente migraciones ni deployment backend.
+
+## Open Questions
+
+- El usuario ofrece una VPS propia para desplegar el backend de prueba si hace falta. Este entorno permitirá publicar los endpoints del repo iOS sin depender del despliegue actual de producción. Pendientes: sistema operativo, administración Docker/panel, dominio HTTPS, acceso operativo y configuración Google OAuth para ese dominio; usar base de datos y archivos de prueba separados. La oferta de VPS no confirma por sí sola la aprobación pendiente del diseño de autenticación ni proporciona acceso al servidor.
+- Backend existente informado por el usuario: `https://misaluteca.com/`, con código en `https://github.com/deimovvv/MiSaluteca-app`, rama `main`. El usuario desconoce el proveedor de alojamiento. `.htaccess` y `app.js` contienen configuración CloudLinux/Passenger para Node; es una pista del entorno, no prueba del proveedor ni del mecanismo de despliegue activo. Falta identificar responsable/procedimiento de publicación y entorno autorizado para integrar las rutas móviles. Los cambios backend hechos en `MatyAlts/MiSaluteca-ios` deberán llevarse al repo que alimenta el servidor mediante un cambio revisable; publicar el repo iOS o compilar un IPA no actualiza ese backend. Estos datos no autorizan un despliegue ni una migración de producción.
+- Disponibilidad del Google web OAuth existente en ese origen (redirect autorizado `/api/auth/callback/google`) y acceso operativo para agregarlo si falta; configuración externa por responsable, no credenciales en repo.
+- Dispositivo/cuentas no sensibles para verificar login, identidad, PDF y revocación; versión iOS y evidencia del visor requeridas durante aceptación manual.
+
+## Implementation decisions
+
+- Transporte real: `expo/fetch` de Expo57, no fetch global React Native. Se inspeccionó Swift instalado `ExpoURLSessionTask.swift` (`credentials: omit` desactiva cookies) y `NativeResponse.swift` (`redirect: error` cancela redirect antes de reenviar Authorization). Tests JS verifican contrato; aceptación de transporte/visor en dispositivo sigue pendiente. Base URL canonical HTTPS sin userinfo/query/hash; el state público y verifier privado usan dos muestras independientes de 32 bytes.
+- Se sustituyó Quick Look por controlador PDFKit propio con acción Cerrar y sin acción exportar/compartir: Quick Look muestra compartir por defecto y no se asumió capacidad pública de deshabilitarlo. Mantiene contrato preview/close y limpieza temporal; módulo local aparece en resolución autolinking. PDFKit/native se debe compilar en macOS y aceptar en iPhone. No se promete eliminación de capturas/copias externas.
+- Usuario aprobó auth y tablas únicamente para entorno de prueba VPS; EasyPanel confirmado, dominio propuesto `https://saluteca.matyalts.me`. Usuario hará primer deployment, configurará Google/DNS/TLS/DB/volumen y luego entregará trigger privado para GitHub Secret `EASYPANEL_DEPLOY_WEBHOOK`. No se ha desplegado ni invocado hook. Workflow backend separado corre checks/build antes de solicitar deploy; hook despliega latest main, no garantiza SHA si main cambia. Esquema fresh TEST mínimo en `database/mobile-test-bootstrap.sql` soporta identidad Google y lectura de estudios; no es reconstrucción del schema productivo ni paridad de upload/family/OCR web.
+- Excepciones puntuales aprobadas por usuario a safety net legacy: OpenAI se inicializa dentro de método después de guards existentes; página de detalle web resuelve params Promise de Next16 antes de misma consulta. Tests comportamentales y build real, no ignoreBuildErrors ni claves falsas para construir.

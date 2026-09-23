@@ -1,0 +1,92 @@
+/* Benefits Section */
+.benefitsSection {
+  background-color: #fafafa;
+}
+
+.title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  color: #000;
+  letter-spacing: -0.02em;
+  margin-bottom: 4rem;
+}
+
+/* Premium Benefit Card */
+.premiumBenefitCard {
+  padding: 2.5rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 24px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .premiumBenefitCard {
+    padding: 1.75rem;
+  }
+}
+
+.premiumBenefitCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-blue), var(--brand-green));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premiumBenefitCard::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle,
+      rgba(1, 99, 144, 0.03) 0%,
+      transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.premiumBenefitCard:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 16px 48px rgba(1, 99, 144, 0.12);
+  border-color: rgba(1, 99, 144, 0.1);
+}
+
+.premiumBenefitCard:hover::before {
+  transform: scaleX(1);
+}
+
+.premiumBenefitCard:hover::after {
+  opacity: 1;
+}
+
+.icon {
+  font-size: 2.5rem;
+  color: #2F416A;
+  transition: color 0.3s ease;
+}
+
+.iconGreen {
+  color: var(--brand-green);
+}
+
+.benefitTitle {
+  color: #000;
+  font-size: 1.25rem;
+}
+
+.benefitDescription {
+  color: #6b6b6b;
+  font-size: 1rem;
+  line-height: 1.6;
+}

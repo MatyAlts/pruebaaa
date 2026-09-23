@@ -1,0 +1,49 @@
+/* Home KPIs */
+.homeKpis {
+  margin-bottom: 1.5rem;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 767.98px) {
+
+  /* Home KPIs in column layout on mobile */
+  .homeKpis {
+    flex-direction: column !important;
+    --bs-gutter-y: 0.375rem !important;
+    --bs-gutter-x: 0 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .homeKpis> :global(.col-md-4) {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    margin-top: 0.25rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .homeKpis :global(.bg-white) {
+    padding: 0.625rem !important;
+    border-radius: 12px !important;
+  }
+
+  .homeKpis :global(.d-flex[style*="48px"]) {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .homeKpis svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .homeKpis :global(.text-muted) {
+    font-size: 0.8125rem !important;
+  }
+
+  .homeKpis :global(.h4) {
+    font-size: 1rem !important;
+  }
+}

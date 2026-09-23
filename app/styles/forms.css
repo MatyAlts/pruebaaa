@@ -1,0 +1,135 @@
+/* ============================================
+   MI SALUTECA — Form Controls
+   ============================================
+   
+   Input treatment: Slightly inset (darker bg)
+   to signal "type here" without heavy borders.
+   ============================================ */
+
+/* ─── Base Form Controls ─── */
+.form-control,
+.form-select {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  padding: 0.625rem 0.875rem;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background-color: var(--surface-0);
+  transition: border-color var(--duration-fast) var(--ease-default),
+    box-shadow var(--duration-fast) var(--ease-default);
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+  /* color: var(--text-muted); */
+  color: #5e5e5e;
+}
+
+/* ─── Focus States ─── */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--saluteca-ocean);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background-color: var(--surface-0);
+  outline: none;
+}
+
+/* ─── Disabled State ─── */
+.form-control:disabled,
+.form-select:disabled {
+  background-color: var(--surface-inset);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  /* opacity: 0.7; */
+  color: #5e5e5e;
+}
+
+/* ─── Input Group ─── */
+.input-group-text {
+  transition: border-color var(--duration-fast) var(--ease-default);
+  border-color: var(--border-default);
+  background-color: var(--surface-inset);
+  color: var(--text-secondary);
+}
+
+.input-group:focus-within .input-group-text {
+  border-color: var(--saluteca-ocean);
+}
+
+/* ─── Dropdown Menu ─── */
+.dropdown-item.active,
+.dropdown-item:active {
+  background: linear-gradient(135deg, var(--saluteca-ocean) 0%, var(--saluteca-ocean-dark) 100%);
+  color: white;
+}
+
+.dropdown-item:hover {
+  background-color: var(--saluteca-sky-faint);
+  color: var(--saluteca-ocean);
+}
+
+.dropdown-menu {
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-1);
+  animation: dropdownFadeIn var(--duration-fast) var(--ease-out);
+}
+
+.dropdown-item {
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base);
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Form Text / Help Text ─── */
+.form-text {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+/* ─── Form Label ─── */
+.form-label {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: var(--text-base);
+  margin-bottom: var(--space-2);
+}
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 767.98px) {
+
+  .form-control,
+  .form-select {
+    padding: 0.5rem 0.75rem !important;
+    font-size: var(--text-sm) !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  .input-group-text {
+    padding: 0.5rem 0.65rem !important;
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm) !important;
+  }
+
+  .input-group .form-control {
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+  }
+
+  .dropdown-toggle {
+    padding: 0.5rem 0.75rem !important;
+    font-size: var(--text-sm) !important;
+  }
+}

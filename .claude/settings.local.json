@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(npx next build:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run build:*)",
+      "Bash(Select-String -Pattern \"error|warning|Compiled|Creating|Route\")",
+      "Bash(Select-Object -First 40)",
+      "Bash(rm:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(npm install)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

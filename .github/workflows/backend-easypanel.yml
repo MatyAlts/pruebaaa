@@ -1,0 +1,120 @@
+name: Backend de prueba EasyPanel
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'src/**'
+      - 'lib/**'
+      - 'landing/**'
+      - 'user-dashboard/**'
+      - 'components/**'
+      - 'config/**'
+      - 'database/**'
+      - 'public/**'
+      - 'tests/mobile-backend/**'
+      - 'tests/docker/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - 'tsconfig.json'
+      - 'next.config.*'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/backend-easypanel.yml'
+permissions:
+  contents: read
+concurrency:
+  group: backend-easypanel-test
+  cancel-in-progress: false
+jobs:
+  validate-build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: isolated-test-password
+          MYSQL_DATABASE: misaluteca_mobile_test
+        ports: ['33316:3306', '3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pisolated-test-password"
+          --health-interval=5s --health-timeout=3s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+          cache: npm
+      - run: npm ci --workspaces=false --no-audit --no-fund
+      - name: Tests contra DB dedicada y HTTP local
+        run: npm run test:mobile-backend
+        env:
+          RUN_MOBILE_MYSQL_TESTS: '1'
+      - name: Build Docker sin credenciales
+        run: docker build -t misaluteca-backend:checked .
+      - name: Verificar puerto fijo con variables de EasyPanel
+        run: node --test tests/docker/family-port.test.mjs
+        env:
+          MOBILE_DOCKER_IMAGE: misaluteca-backend:checked
+      - name: Verificar carga nativa y recuperación en imagen final
+        run: node --test tests/docker/study-upload.test.mjs
+        env:
+          MOBILE_DOCKER_IMAGE: misaluteca-backend:checked
+      - name: Verificar aislamiento de imagen web
+        run: |
+          docker run --rm --entrypoint node misaluteca-backend:checked -e "
+            const fs = require('node:fs');
+            if (fs.existsSync('/app/mobile')) throw new Error('La imagen contiene recursos móviles');
+            for (const dependency of ['expo', 'react-native']) {
+              try { require.resolve(dependency); }
+              catch (error) {
+                if (error.code === 'MODULE_NOT_FOUND') continue;
+                throw error;
+              }
+              throw new Error('La imagen contiene runtime móvil: ' + dependency);
+            }
+            console.log('Imagen Next sin recursos ni runtime móvil');
+          "
+      - name: Comprobar arranque Next de imagen final
+        run: |
+          smoke_container="misaluteca-next-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          smoke_response=$(mktemp)
+          trap 'docker rm -f "$smoke_container" >/dev/null 2>&1 || true; rm -f "$smoke_response"' EXIT
+          docker run -d --name "$smoke_container" -p 127.0.0.1::3000 misaluteca-backend:checked
+          smoke_address=$(docker port "$smoke_container" 3000/tcp)
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --max-time 2 "http://${smoke_address}/maintenance.html" -o "$smoke_response"; then
+              cmp "$smoke_response" public/maintenance.html
+              echo 'Next arrancó y sirvió el recurso esperado desde la imagen final'
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs "$smoke_container"
+          echo 'La imagen final no respondió en el plazo esperado' >&2
+          exit 1
+      - name: Solicitar deploy únicamente si el hook está configurado
+        env:
+          DEPLOY_HOOK: ${{ secrets.EASYPANEL_DEPLOY_WEBHOOK }}
+        run: |
+          python3 - <<'PY'
+          import os, sys, urllib.request, urllib.parse
+          hook = os.environ.get('DEPLOY_HOOK', '')
+          if not hook:
+              print('Hook no configurado: deployment omitido. Primer deploy corresponde al responsable de EasyPanel.')
+              sys.exit(0)
+          parsed = urllib.parse.urlsplit(hook)
+          if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password or parsed.fragment:
+              sys.exit('Hook inválido; se exige HTTPS sin credenciales URL.')
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs): return None
+          opener = urllib.request.build_opener(NoRedirect())
+          try:
+              with opener.open(urllib.request.Request(hook, method='POST', data=b''), timeout=30) as response:
+                  if not 200 <= response.status < 300: raise ValueError()
+          except Exception:
+              sys.exit('No se pudo solicitar deployment. Revisar configuración privada en EasyPanel; URL/respuesta omitidas.')
+          print('Deployment solicitado; verificar revisión y estado en EasyPanel.')
+          PY

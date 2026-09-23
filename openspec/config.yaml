@@ -1,0 +1,68 @@
+schema: spec-driven
+
+context: |
+  Language: Spanish
+  All artifacts must be written in Spanish.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Proyecto existente: MiSaluteca, aplicación web Next.js 16, React 19 y TypeScript.
+  MySQL mediante mysql2; NextAuth v4 con Google y sesiones web basadas en cookies.
+  El CRUD utiliza Server Actions; los archivos se guardan en el filesystem del
+  servidor mediante DIRECTORY_UPLOADS. No asumir almacenamiento S3/R2 operativo.
+  Documento de referencia: docs/exploracion-ios-react-native.md.
+  Aplicación iOS mínima implementada en mobile/: Expo 57.0.23, React Native 0.86.3
+  y React 19.2.3. connect-ios-studies implementa sesión Google con puente PKCE,
+  tokens revocables y API HTTP de lectura propia de estudios/PDF; sus pruebas
+  locales y CI pasan, pero despliegue TEST y aceptación física siguen pendientes.
+  Se conserva la web y el backend. No asumir API desplegada ni Google configurado
+  en el dominio TEST propuesto https://saluteca.matyalts.me.
+  Primer hito validado: GitHub Actions en macOS compila Release para iphoneos,
+  empaqueta un IPA sin firma con JavaScript y recursos incluidos, instalado mediante
+  Impactor; usuario confirmó reapertura sin Metro en modo avión y bundle identifier
+  com.matyalts.misaluteca conservado. No asumir integración con backend implementada.
+  La firma gratuita requiere renovación aproximadamente cada siete días.
+  TestFlight y App Store quedan para una etapa posterior con Apple Developer pago.
+  Respetar branding y convenciones existentes, incluida config/date.ts.
+  Las pantallas nativas requieren componentes nativos; Bootstrap, APIs de navegador
+  y el OCR web no se trasladan directamente a React Native.
+  Cambios de autenticación o seguridad requieren análisis y aprobación humana
+  explícita antes de escribir código. No guardar credenciales en artifacts.
+  Aplicar TDD estricto en implementación cuando haya un test runner disponible;
+  el proyecto móvil ya tiene Jest, React Native Testing Library y unittest Python
+  para scripts. La web mantiene fallas preexistentes de lint documentadas;
+  TypeScript pasó y el build funciona sin credenciales IA. El análisis web usa
+  OpenRouter con OPENROUTER_API_KEY runtime y modelo openai/gpt-4o-mini;
+  OPENAI_API_KEY no habilita análisis después de esta migración.
+  OpenSpec se incorpora de forma incremental: no reconstruir toda la fundación,
+  no inventar specs existentes ni considerar implementadas las propuestas.
+
+rules:
+  proposal:
+    - Distinguir comportamiento existente, alcance propuesto y supuestos pendientes de validar.
+    - Mantener cada change acotado y preservar la aplicación web durante la incorporación de iOS.
+  design:
+    - Explicitar dependencias web y nativas y los riesgos de autenticación, firma y capacidades iOS cuando correspondan.
+  tasks:
+    - Incluir validación ejecutable de los criterios de aceptación y checkpoints para decisiones no obvias.
+    - Para implementación con runner disponible, registrar baseline y evidencia RED, GREEN y triangulación; no afirmar pruebas no ejecutadas.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

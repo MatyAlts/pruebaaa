@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS estudios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  email_usuario VARCHAR(255) NOT NULL,
+  id_familiar INT NULL COMMENT 'NULL = estudio del usuario principal',
+  categoria ENUM('images', 'laboratory', 'uncategorized') DEFAULT 'uncategorized',
+  titulo VARCHAR(255) NULL,
+  fecha DATE NOT NULL,
+  descripcion TEXT NULL,
+  file_key VARCHAR(500) NOT NULL COMMENT 'Ruta o identificador del archivo en el storage',
+  file_name VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  file_size BIGINT NOT NULL COMMENT 'Tamaño del archivo en bytes',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_usuario (id_usuario),
+  INDEX idx_email (email_usuario),
+  INDEX idx_familiar (id_familiar),
+  INDEX idx_fecha (fecha),
+  INDEX idx_categoria (categoria)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

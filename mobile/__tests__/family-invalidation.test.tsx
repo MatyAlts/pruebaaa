@@ -1,0 +1,22 @@
+import Home from "../app/(tabs)/home";
+import { fireEventAsync, renderAsync, waitFor } from "@testing-library/react-native";
+import { SessionProvider } from "../src/session-provider";
+import { MobileClient } from "../src/session";
+import Family from "../app/(tabs)/family";
+import FamilyFormRoute from "../app/family-form";
+const mockPush=jest.fn();
+jest.mock("expo-router/react-navigation",()=>({usePreventRemove:jest.fn(),useNavigation:()=>({dispatch:jest.fn()})}));
+jest.mock("expo-router", () => { const { Text } = jest.requireActual("react-native"); return { useLocalSearchParams:()=>({}),useRouter: () => ({ navigate: jest.fn(),push:mockPush,back:jest.fn() }), Redirect: ({ href }: { href: string }) => <Text>{`redirect:${href}`}</Text> }; });
+jest.setTimeout(30000);
+test("adding a real family refreshes an already mounted Inicio summary", async () => {
+  const client = new MobileClient("https://test.invalid", { fetch: jest.fn(), storage: { get: async () => null, set: async () => {}, remove: async () => {} }, browser: jest.fn(), proof: jest.fn(), cleanup: async () => {} });
+  client.state = { user: { id: "17", name: "Ana" }, busy: false, message: null };
+  let count = 0;
+  const get = jest.spyOn(client, "get").mockImplementation(async (path) => path === "/capabilities" ? { features: { studiesRead: true, studiesSummary: true, familyRead: true, familyWrite: true, studiesFamilyScope: true } } : path === "/family-members" ? { items: [] } : { scope: "all", propiosTotal: 0, familiaresTotal: count, total: count, recientes: [], filterOptions: { medicos: [], institutions: [], years: [] } });
+  jest.spyOn(client, "write").mockImplementation(async () => { count = 7; return { familyMember: { id: "1", uuid: "ana", name: "Ana", studyCount: 7, lastStudyDate: null } }; });
+  const screen = await renderAsync(<SessionProvider createServices={() => ({ client, pdf: { open: jest.fn() } as never })}><Home /><Family /><FamilyFormRoute /></SessionProvider>);
+  await waitFor(() => expect(screen.getByRole("button", { name: "Agregar familiar" })).toBeTruthy());
+  await fireEventAsync.press(screen.getByRole("button", { name: "Agregar familiar" })); expect(mockPush).toHaveBeenLastCalledWith("/family-form"); await fireEventAsync.changeText(screen.getByLabelText("Nombre del familiar"), "Ana"); await fireEventAsync.press(screen.getByRole("button", { name: "Guardar familiar" }));
+  await waitFor(() => expect(screen.getAllByText("7")).toHaveLength(2));
+  expect(get.mock.calls.filter(([path]) => path === "/studies/summary?scope=all").length).toBe(2);
+});

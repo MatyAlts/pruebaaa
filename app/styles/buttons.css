@@ -1,0 +1,171 @@
+/* ============================================
+   MI SALUTECA — Button System
+   ============================================
+   
+   Depth strategy: Layered shadows for primary,
+   clean borders for secondary/outline.
+   ============================================ */
+
+/* ─── Primary Button ─── */
+.btn-primary-saluteca {
+  background: var(--saluteca-ocean);
+  border: none;
+  color: var(--saluteca-white);
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-btn);
+  transition: all var(--duration-normal) var(--ease-default);
+  box-shadow: var(--shadow-brand);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-normal);
+  line-height: var(--leading-normal);
+}
+
+.btn-primary-saluteca:hover {
+  background: var(--saluteca-ocean-dark);
+  color: var(--saluteca-white);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-brand-hover);
+}
+
+.btn-primary-saluteca:active {
+  background: var(--saluteca-ocean-deep);
+  transform: translateY(0);
+  box-shadow: var(--shadow-brand);
+}
+
+.btn-primary-saluteca:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-brand), 0 0 0 3px var(--focus-ring);
+}
+
+.btn-primary-saluteca:disabled {
+  background: var(--saluteca-ocean);
+  color: var(--saluteca-white);
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─── Outline Button ─── */
+.btn-outline-saluteca {
+  background: var(--surface-0);
+  border: 1px solid var(--border-strong);
+  color: var(--saluteca-ocean);
+  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-btn);
+  transition: all var(--duration-normal) var(--ease-default);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-outline-saluteca:hover {
+  background: var(--saluteca-sky-faint);
+  border-color: var(--saluteca-ocean);
+  color: var(--saluteca-ocean);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-outline-saluteca:active {
+  transform: translateY(0);
+  background: var(--saluteca-sky-wash);
+}
+
+.btn-outline-saluteca:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-xs), 0 0 0 3px var(--focus-ring);
+}
+
+.btn-outline-saluteca:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Secondary / Ghost Button ─── */
+.btn-secondary-saluteca {
+  background-color: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-btn);
+  transition: all var(--duration-normal) var(--ease-default);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.btn-secondary-saluteca:hover {
+  background-color: var(--surface-inset);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.btn-secondary-saluteca:active {
+  background-color: var(--border-default);
+}
+
+.btn-secondary-saluteca:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.btn-secondary-saluteca:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Size Variants: Ensure correct shape is preserved ─── */
+.btn-primary-saluteca.btn-sm,
+.btn-outline-saluteca.btn-sm,
+.btn-secondary-saluteca.btn-sm {
+  border-radius: var(--radius-sm) !important;
+}
+
+.btn-primary-saluteca.btn-lg,
+.btn-outline-saluteca.btn-lg,
+.btn-secondary-saluteca.btn-lg {
+  border-radius: var(--radius-btn) !important;
+}
+
+/* ─── Shared Links Modal Buttons ─── */
+.list-group-item .btn,
+.list-group-item button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.375rem !important;
+}
+
+.list-group-item .btn svg,
+.list-group-item button svg {
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.list-group-item .btn.btn-outline-saluteca svg,
+.list-group-item .btn-outline-danger svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* ─── Touch Device Optimizations ─── */
+@media (hover: none) and (pointer: coarse) {
+
+  .btn-primary-saluteca:hover,
+  .btn-outline-saluteca:hover {
+    transform: none;
+  }
+
+  /* Larger tap targets */
+  .btn,
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

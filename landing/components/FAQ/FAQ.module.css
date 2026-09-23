@@ -1,0 +1,78 @@
+/* FAQ Section */
+.faqSection {
+  background-color: #fff;
+}
+
+.title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  color: #000;
+  letter-spacing: -0.02em;
+  margin-bottom: 4rem;
+}
+
+/* Premium Accordion */
+.premiumAccordion :global(.accordion-item) {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+  margin-bottom: 1rem;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premiumAccordion :global(.accordion-item:hover) {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(122, 187, 133, 0.2);
+  transform: translateY(-2px);
+}
+
+.premiumAccordion :global(.accordion-button) {
+  background: #fff;
+  border: none;
+  padding: 1.75rem 2rem;
+  font-size: 1.1rem;
+  box-shadow: none;
+  color: #000;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.premiumAccordion :global(.accordion-button:not(.collapsed)) {
+  background: linear-gradient(to right,
+      rgba(1, 99, 144, 0.03),
+      rgba(1, 99, 144, 0.01));
+  color: var(--primary-blue);
+  box-shadow: none;
+}
+
+.premiumAccordion :global(.accordion-button:focus) {
+  box-shadow: none;
+  border: none;
+}
+
+.premiumAccordion :global(.accordion-button::after) {
+  background-size: 1.25rem;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premiumAccordion :global(.accordion-button:not(.collapsed)::after) {
+  transform: rotate(180deg);
+}
+
+.premiumAccordion :global(.accordion-body) {
+  padding: 0 2rem 2rem 2rem;
+  background: linear-gradient(to bottom, rgba(1, 99, 144, 0.02), transparent);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.question {
+  font-size: 1.1rem;
+}
+
+.answer {
+  color: #6b6b6b;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}

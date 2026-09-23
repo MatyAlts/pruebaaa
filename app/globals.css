@@ -1,0 +1,163 @@
+/* ============================================
+   MI SALUTECA — Global Styles
+   Import order matters
+   ============================================ */
+@import "./styles/variables.css";
+@import "./styles/utilities.css";
+@import "./styles/buttons.css";
+@import "./styles/forms.css";
+@import "./styles/layout.css";
+
+/* ─── Base Body ─── */
+body {
+  background: var(--surface-canvas);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background-color: var(--saluteca-sky-wash);
+  color: var(--saluteca-ocean-dark);
+}
+
+
+/* ─── Animations ─── */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes magnifierHintPulse {
+
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ─── Typography refinements ─── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+small,
+.small {
+  color: var(--text-tertiary);
+}
+
+/* ─── Link defaults ─── */
+a {
+  color: var(--saluteca-ocean);
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+a:hover {
+  color: var(--saluteca-ocean-light);
+}
+
+/* ─── Bootstrap card override ─── */
+.card {
+  border: 0.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-body {
+  padding: var(--space-6);
+}
+
+/* ─── Modal refinements ─── */
+.modal-content {
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  border-bottom-color: var(--border-subtle);
+}
+
+.modal-footer {
+  border-top-color: var(--border-subtle);
+}
+
+.modal-backdrop.show {
+  opacity: 0.4;
+}
+
+/* ─── List group refinements ─── */
+.list-group-item {
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+/* ─── Badge refinements ─── */
+.badge {
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ─── accessibility: reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

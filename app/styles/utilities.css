@@ -1,0 +1,176 @@
+/* ============================================
+   MI SALUTECA — Utility Classes
+   ============================================ */
+
+/* ─── Text Colors ─── */
+.text-primary-saluteca {
+  color: var(--saluteca-ocean);
+}
+
+.text-secondary-saluteca {
+  color: var(--saluteca-teal);
+}
+
+.text-muted-saluteca {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.text-faint {
+  color: var(--text-muted);
+}
+
+/* ─── Background Colors ─── */
+.bg-primary-saluteca {
+  background-color: var(--saluteca-ocean);
+}
+
+.bg-secondary-saluteca {
+  background-color: var(--saluteca-teal);
+}
+
+.bg-canvas {
+  background-color: var(--surface-canvas);
+}
+
+.bg-surface {
+  background-color: var(--surface-0);
+}
+
+.bg-inset {
+  background-color: var(--surface-inset);
+}
+
+/* ─── Card System ─── */
+.card-saluteca {
+  background: var(--surface-0);
+  border: 0.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-default),
+    transform var(--duration-normal) var(--ease-default);
+}
+
+.card-saluteca:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-saluteca .card-body {
+  padding: var(--space-6);
+}
+
+/* Clickable card lift */
+.card-saluteca-interactive {
+  cursor: pointer;
+}
+
+.card-saluteca-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-saluteca-interactive:active {
+  transform: translateY(0);
+}
+
+/* ─── Hover Utilities ─── */
+.hover-bg-light:hover {
+  background-color: rgba(1, 99, 144, 0.04);
+  border-radius: var(--radius-md);
+}
+
+.hover-lift {
+  transition: transform var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ─── Semantic Badges ─── */
+.badge-success {
+  background-color: var(--saluteca-success-wash);
+  color: var(--saluteca-success-text);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.badge-warning {
+  background-color: var(--saluteca-warning-wash);
+  color: var(--saluteca-warning-text);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.badge-danger {
+  background-color: var(--saluteca-danger-wash);
+  color: var(--saluteca-danger-text);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.badge-info {
+  background-color: var(--saluteca-info-wash);
+  color: var(--saluteca-info-text);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* ─── Alert Banners ─── */
+.alert-saluteca-success {
+  background-color: var(--saluteca-success-wash);
+  border: 1px solid var(--saluteca-teal-light);
+  color: var(--saluteca-success-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.alert-saluteca-warning {
+  background-color: var(--saluteca-warning-wash);
+  border: 1px solid var(--saluteca-warning);
+  color: var(--saluteca-warning-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.alert-saluteca-danger {
+  background-color: var(--saluteca-danger-wash);
+  border: 1px solid var(--saluteca-danger);
+  color: var(--saluteca-danger-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.alert-saluteca-info {
+  background-color: var(--saluteca-info-wash);
+  border: 1px solid var(--saluteca-info);
+  color: var(--saluteca-info-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* ─── Divider ─── */
+.divider {
+  border: none;
+  border-top: 0.5px solid var(--border-default);
+  margin: var(--space-4) 0;
+}
+
+.divider-subtle {
+  border: none;
+  border-top: 0.5px solid var(--border-subtle);
+  margin: var(--space-3) 0;
+}

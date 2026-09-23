@@ -1,0 +1,14 @@
+.git
+.env*
+**/node_modules
+.next
+mobile/*
+!mobile/package.json
+uploads
+.engram
+.migration-backups
+.agents
+docs
+openspec
+tests
+*.log

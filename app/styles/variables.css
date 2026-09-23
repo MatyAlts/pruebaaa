@@ -1,0 +1,206 @@
+/* ============================================
+   MI SALUTECA — Design System Tokens
+   Archivador Médico Digital
+   ============================================
+   
+   Intent: A modern medical filing cabinet — clean, 
+   professional, with warm touches of family care.
+   Color temperature: Cool-clinical with warm accents.
+   Depth strategy: Layered shadows (Stripe-inspired).
+   ============================================ */
+
+:root {
+  /* ─── Brand Colors ─── */
+  --saluteca-ocean: #2F416A;
+  --saluteca-ocean-light: #43599E;
+  --saluteca-ocean-dark: #233257;
+  --saluteca-ocean-deep: #1A2540;
+  --saluteca-sky: #92A8E0;
+  --saluteca-sky-wash: #DAE2FA;
+  --saluteca-sky-faint: #EFF3FC;
+
+  /* Legacy aliases — keep backward compatibility */
+  --saluteca-primary: var(--saluteca-ocean);
+  --saluteca-primary-light: var(--saluteca-ocean-light);
+  --saluteca-primary-dark: var(--saluteca-ocean-dark);
+
+  /* ─── Accent (replaces the non-brand green) ─── */
+  --saluteca-teal: #0d9488;
+  --saluteca-teal-light: #5eead4;
+  --saluteca-teal-wash: #ccfbf1;
+  --saluteca-teal-faint: #f0fdfa;
+
+  /* ─── Brand Green (from brand palette) ─── */
+  --saluteca-green: #7ABB85;
+  --saluteca-green-dark: #5a8f62;
+  --saluteca-green-wash: rgba(122, 187, 133, 0.12);
+  --saluteca-green-faint: rgba(122, 187, 133, 0.06);
+
+  /* ─── Family (Purple accent for grupo familiar) ─── */
+  --saluteca-family: #7B1FA2;
+  --saluteca-family-wash: #F3E5F5;
+  --saluteca-family-faint: #F9F0FB;
+
+  /* Legacy alias */
+  --saluteca-secondary: var(--saluteca-teal);
+
+  /* ─── Semantic Colors ─── */
+  --saluteca-success: #7ABB85;
+  --saluteca-success-wash: rgba(122, 187, 133, 0.12);
+  --saluteca-success-text: #5a8f62;
+
+  --saluteca-warning: #d97706;
+  --saluteca-warning-wash: #fef3c7;
+  --saluteca-warning-text: #92400e;
+
+  --saluteca-danger: #dc2626;
+  --saluteca-danger-wash: #fee2e2;
+  --saluteca-danger-text: #991b1b;
+
+  --saluteca-info: #0284c7;
+  --saluteca-info-wash: #e0f2fe;
+  --saluteca-info-text: #075985;
+
+  /* ─── Surface Elevation (Light Mode) ─── */
+  --surface-canvas: #f8fafc;
+  --surface-0: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-inset: #f1f5f9;
+  --surface-overlay: rgba(0, 0, 0, 0.5);
+
+  /* ─── Text Hierarchy (4 levels) ─── */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --text-muted: #cbd5e1;
+
+  /* Legacy aliases */
+  --foreground: var(--text-primary);
+  --text-muted-legacy: var(--text-secondary);
+  --saluteca-gray: var(--text-secondary);
+  --saluteca-black: #000000;
+  --saluteca-white: #ffffff;
+  --saluteca-bg: var(--surface-canvas);
+
+  /* ─── Border Hierarchy (4 levels) ─── */
+  --border-subtle: rgba(15, 23, 42, 0.05);
+  --border-default: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.12);
+  --border-stronger: rgba(15, 23, 42, 0.18);
+
+  /* Legacy alias */
+  --border-color: var(--border-default);
+
+  /* ─── Focus ─── */
+  --focus-ring: rgba(47, 65, 106, 0.35);
+  --focus-ring-offset: 2px;
+
+  /* ─── Shadows (Layered — Stripe-inspired) ─── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:
+    0 0 0 0.5px rgba(0, 0, 0, 0.03),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-md:
+    0 0 0 0.5px rgba(0, 0, 0, 0.03),
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.03);
+  --shadow-lg:
+    0 0 0 0.5px rgba(0, 0, 0, 0.03),
+    0 2px 4px rgba(0, 0, 0, 0.03),
+    0 8px 16px rgba(0, 0, 0, 0.05),
+    0 16px 32px rgba(0, 0, 0, 0.04);
+  --shadow-brand:
+    0 4px 12px rgba(47, 65, 106, 0.15),
+    0 2px 4px rgba(47, 65, 106, 0.1);
+  --shadow-brand-hover:
+    0 8px 20px rgba(47, 65, 106, 0.2),
+    0 4px 8px rgba(47, 65, 106, 0.12);
+
+  /* ─── Spacing (4px base unit) ─── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ─── Border Radius ─── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-btn: 999px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* ─── Typography ─── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+
+  --text-xs: 1rem;
+  /* 16px */
+  --text-sm: 1.0625rem;
+  /* 17px */
+  --text-base: 1.125rem;
+  /* 18px */
+  --text-md: 1.1875rem;
+  /* 19px */
+  --text-lg: 1.25rem;
+  /* 20px */
+  --text-xl: 1.375rem;
+  /* 22px */
+  --text-2xl: 1.75rem;
+  /* 28px */
+  --text-3xl: 2.125rem;
+  /* 34px */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+
+  /* ─── Transitions ─── */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
+  /* ─── Category Study Colors (Medical Domain) ─── */
+  --cat-blood: #C41E3A;
+  --cat-blood-bg: #FFF1F2;
+  --cat-xray: #0369a1;
+  --cat-xray-bg: #e0f2fe;
+  --cat-mri: #7c3aed;
+  --cat-mri-bg: #f5f3ff;
+  --cat-ct: #047857;
+  --cat-ct-bg: #ecfdf5;
+  --cat-ultrasound: #c2410c;
+  --cat-ultrasound-bg: #fff7ed;
+  --cat-ecg: #be185d;
+  --cat-ecg-bg: #fdf2f8;
+  --cat-other: var(--text-secondary);
+  --cat-other-bg: var(--surface-inset);
+
+  /* ─── Bootstrap Overrides ─── */
+  --bs-primary: var(--saluteca-ocean);
+  --bs-primary-rgb: 47, 65, 106;
+  --bs-secondary: var(--saluteca-teal);
+  --bs-secondary-rgb: 13, 148, 136;
+  --bs-dark: var(--text-primary);
+  --bs-dark-rgb: 15, 23, 42;
+  --bs-body-font-family: var(--font-sans);
+  --bs-border-radius: var(--radius-lg);
+  --bs-border-radius-sm: var(--radius-md);
+  --bs-border-radius-lg: var(--radius-xl);
+}

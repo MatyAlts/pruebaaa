@@ -1,0 +1,108 @@
+/* ============================================
+   MI SALUTECA — Admin Menu
+   ============================================ */
+
+/* Menu lateral fijo */
+.menuAdminContainer {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  z-index: 1045;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-0);
+  border-right: 0.5px solid var(--border-default);
+  box-shadow: var(--shadow-sm);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Header del menu */
+.menuAdminHeader {
+  flex-shrink: 0;
+  padding: 1.5rem;
+  border-bottom: 0.5px solid var(--border-subtle);
+}
+
+.menuAdminHeader h5 {
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+/* Body del menu */
+.menuAdminBody {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  padding: var(--space-4);
+  padding-bottom: var(--space-12);
+}
+
+.buttonOpenMenu {
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+  background: var(--saluteca-ocean) !important;
+  border-color: var(--saluteca-ocean) !important;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--space-2) var(--space-4) !important;
+  transition: background var(--duration-normal) var(--ease-default);
+}
+
+.buttonOpenMenu:hover {
+  background: var(--saluteca-ocean-light) !important;
+  border-color: var(--saluteca-ocean-light) !important;
+}
+
+.buttonMenu {
+  background: var(--surface-inset) !important;
+  color: var(--text-primary) !important;
+  border: 0.5px solid var(--border-default) !important;
+  height: auto !important;
+  padding: var(--space-3) var(--space-5) !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-base) !important;
+  font-weight: 500 !important;
+  border-radius: var(--radius-md) !important;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: all var(--duration-normal) var(--ease-default) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.buttonMenu span {
+  position: relative;
+  z-index: 2;
+}
+
+.activeMenu {
+  background: linear-gradient(135deg, var(--saluteca-ocean-light) 0%, var(--saluteca-ocean) 100%) !important;
+  color: var(--saluteca-white) !important;
+  border-color: var(--saluteca-ocean) !important;
+  box-shadow: var(--shadow-brand) !important;
+}
+
+.buttonMenu:hover {
+  background: var(--saluteca-sky-faint) !important;
+  border-color: var(--saluteca-ocean) !important;
+  color: var(--saluteca-ocean) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: translateY(-1px);
+}
+
+.activeMenu:hover {
+  background: linear-gradient(135deg, #0ea5e9 0%, var(--saluteca-ocean-light) 100%) !important;
+  color: var(--saluteca-white) !important;
+}
+
+.buttonMenu:active {
+  transform: translateY(0);
+}
+
+/* Remove old ::before and ::after pseudo-elements */
+.buttonMenu::after,
+.buttonMenu::before {
+  display: none;
+}
